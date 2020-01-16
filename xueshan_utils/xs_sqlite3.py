@@ -65,7 +65,7 @@ class xsSqlite3():
         except Exception as e:
             print("sqlite3数据库类执行sql语句报错：", e)
             return False, e
-        if count > 0:
+        if count > 0 or sql.lower().startswith("create") or sql.lower().startswith("delete"):
             return True
         else:
             return False
