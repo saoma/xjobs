@@ -62,7 +62,7 @@ class xsSqlite3():
                     self.c.executemany(sql, param)
                 else:
                     self.c.execute(sql, param)
-            count = self.conn.total_changes
+            count = self.c.rowcount
             self.conn.commit()
         except Exception as e:
             print("sqlite3数据库类执行sql语句报错：", e)
@@ -105,5 +105,7 @@ if __name__ == '__main__':
     # ×××错误的插入示范，单条传入list插入方式会报错×××
     res, m = sqlite.execute("insert into test(id,name,age) values (?,?,?)", [2, "李四", 19])
     print(res, m)
-
+    # 表多条插入测试
+    res, m = sqlite.execute("insert into test(id,name,age) values (?,?,?)", [(3, "王五", 20), (4, "郑六", 22)])
+    print(res, m)
     sqlite.close_all()
