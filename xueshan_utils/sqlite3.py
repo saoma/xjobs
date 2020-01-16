@@ -24,10 +24,29 @@ class xsSqlite3():
         self.c = self.conn.cursor()
 
     def close_conn(self):
-        pass
+        '''
+        仅关闭数据库连接
+        '''
+        self.conn.close()
 
     def close_cursor(self):
-        pass
+        '''
+        仅关闭游标cursor，需在关闭数据库连接之前
+        '''
+        self.c.close()
 
     def close_all(self):
+        '''
+        分别依次关闭游标cursor和数据库连接
+        '''
+        self.c.close()
+        self.conn.close()
+
+    def execute(self, sql, param = None):
+        '''
+        执行数据库的增、删、改操作
+        :param sql:执行的sql语句
+        :param param: 执行sql的参数数据，比如要insert的数据，可以是list或tuple，默认为None
+        :return: 返回是否执行成功，成功返回True；执行后影响条数为0或执行失败都会返回False
+        '''
         pass
