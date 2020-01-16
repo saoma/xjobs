@@ -1,14 +1,18 @@
 --创建xjobs_task表
 CREATE TABLE xjobs_task (
-    job_id       INTEGER     PRIMARY KEY ASC AUTOINCREMENT
-                             NOT NULL,
+    job_id       INTEGER         PRIMARY KEY ASC AUTOINCREMENT
+                                 NOT NULL,
     job_name     TEXT,
     command_lang TEXT,
     command      TEXT,
     input_param  TEXT,
     comments     TEXT,
     cron_exp     TEXT,
-    is_pause     INTEGER (1) DEFAULT (0),
+    start_date   DATE,
+    end_date     DATE,
+    jitter       NUMERIC (10, 2),
+    is_pause     INTEGER (1)     DEFAULT (0) 
+                                 NOT NULL,
     success_exit TEXT,
     update_time  DATETIME,
     job_type     TEXT,
