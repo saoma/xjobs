@@ -7,6 +7,7 @@
 
 import sqlite3
 
+
 class xsSqlite3():
     '''
     雪山凌狐sqlite3封装工具类
