@@ -48,7 +48,7 @@ class xsSqlite3():
         执行数据库的增、删、改操作，一般建议同一类型的操作才写在一起
         :param sql:执行的sql语句
         :param param: 执行sql的参数数据，比如要insert的数据，可以是list或tuple，默认为None。
-        执行单条则传入tuple即可，执行多条则传入list，元素为每条的tuple
+        执行单条则传入tuple即可（不要传入list），执行多条则传入list，元素为每条的tuple
         :return: 返回是否执行成功，返回元组，第一个元素为是否成功。
         成功返回True；执行后影响条数为0或执行失败都会返回False。
         第二个元素为返回的信息，错误信息或成功信息等。
@@ -59,7 +59,7 @@ class xsSqlite3():
                 self.conn.execute(sql)
             else:
                 if type(param) is list:
-                    self.c.cxecutemany(sql, param)
+                    self.c.executemany(sql, param)
                 else:
                     self.c.execute(sql, param)
             count = self.conn.total_changes
@@ -96,7 +96,14 @@ if __name__ == '__main__':
     # 正确建表测试
     res, m = sqlite.execute("create table test (id int not null, name text, age int)")
     print(res, m)
-    # 建表语句错误测试
+    # ×××建表语句错误测试×××
     res, m = sqlite.execute("create table test_error")
     print(res, m)
+    # 表单条插入测试
+    res, m = sqlite.execute("insert into test(id,name,age) values (?,?,?)", (1, "张三", 18))
+    print(res, m)
+    # ×××错误的插入示范，单条传入list插入方式会报错×××
+    res, m = sqlite.execute("insert into test(id,name,age) values (?,?,?)", [2, "李四", 19])
+    print(res, m)
+
     sqlite.close_all()
