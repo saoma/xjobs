@@ -1,7 +1,7 @@
-#coding: utf-8
-#Author：雪山凌狐
-#website：http://www.xueshanlinghu.com
-#鸣谢：boxker
+# coding: utf-8
+# Author：雪山凌狐
+# website：http://www.xueshanlinghu.com
+# 鸣谢：boxker
 
 # sqlite3数据库的操作包
 
@@ -13,7 +13,7 @@ class xsSqlite3():
     为了方便调用python中的sqlite3做交互而编写
     '''
 
-    def __init__(self, filename = ":memory:"):
+    def __init__(self, filename=":memory:"):
         '''
         初始化数据库，默认文件名为:memory:，即打开内存数据库。
         如果路径中数据库存在，则会自动创建一个新的数据库。
@@ -42,7 +42,7 @@ class xsSqlite3():
         self.c.close()
         self.conn.close()
 
-    def execute(self, sql, param = None):
+    def execute(self, sql, param=None):
         '''
         执行数据库的增、删、改操作
         :param sql:执行的sql语句
@@ -69,7 +69,7 @@ class xsSqlite3():
         else:
             return False
 
-    def query(self, sql, param = None):
+    def query(self, sql, param=None):
         '''
         数据库查询
         :param sql:查询sql语句
@@ -82,6 +82,10 @@ class xsSqlite3():
             self.c.execute(sql, param)
         return self.c.fetchall()
 
+
 if __name__ == '__main__':
     # 以下是此类的测试代码
     sqlite = xsSqlite3()
+    res = sqlite.execute("create table test (id int not null,name text,age int);")
+    print(res)
+    sqlite.close_all()
