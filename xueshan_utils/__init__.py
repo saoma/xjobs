@@ -5,3 +5,4 @@
 # update_date：2020-01-16
 
 from .xs_sqlite3 import *
+from .xs_cron import *
