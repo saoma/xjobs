@@ -50,7 +50,7 @@ class xsSqlite3():
         :param param: 执行sql的参数数据，比如要insert的数据，可以是list或tuple，默认为None。
         执行单条则传入tuple即可（不要传入list），执行多条则传入list，元素为每条的tuple
         :return: 返回是否执行成功，返回元组，第一个元素为是否成功。
-        成功返回True；执行后影响条数为0或执行失败都会返回False。
+        成功返回True；执行失败会返回False。
         第二个元素为返回的信息，错误信息或成功信息等。
         '''
         count = 0
@@ -68,9 +68,13 @@ class xsSqlite3():
             print("sqlite3数据库类执行sql语句报错：", e)
             return False, e
         if count > 0:
+            # 这里覆盖insert，update，delete操作
             return True, sql[0:sql.find(" ")] + "操作影响行数为：" + str(count)
-        elif sql.lower().startswith("create") or sql.lower().startswith("delete"):
+        elif sql.lower().startswith("create") or sql.lower().startswith("drop"):
+            # 这里覆盖建表和删表操作
             return True, sql[0:sql.find(" ")] + " table successful!"
+        elif count == 0:
+            return True, sql[0:sql.find(" ")] + "操作影响行数为：0"
         else:
             return False, "unknown error"
 
@@ -92,6 +96,7 @@ if __name__ == '__main__':
     # 以下是此类的测试代码
 
     # 内存数据库读写测试
+    # 初始化连接，不传入参数则会自动打开一个内存数据库
     sqlite = xsSqlite3()
     # 正确建表测试
     res, m = sqlite.execute("create table test (id int not null, name text, age int)")
@@ -108,4 +113,26 @@ if __name__ == '__main__':
     # 表多条插入测试
     res, m = sqlite.execute("insert into test(id,name,age) values (?,?,?)", [(3, "王五", 20), (4, "郑六", 22)])
     print(res, m)
+    # 表查询测试
+    res = sqlite.query("select * from test")
+    print("test表查询结果：", res)
+    res = sqlite.query("select * from test where id=?", (3,))
+    print("test表查询结果：", res)
+    res = sqlite.query("select * from test where id=?", (5,))
+    print("test表查询结果：", res)
+    # 表更新测试
+    res, m = sqlite.execute("update test set age = ? where id = ?", (55, 1))
+    print(res, m)
+    res = sqlite.query("select * from test")
+    print("test表查询结果：", res)
+    # 表数据行删除测试
+    res, m = sqlite.execute("delete from test where age = ?", (55,))
+    print(res, m)
+    res = sqlite.query("select * from test")
+    print("test表查询结果：", res)
+    # 表删除测试
+    res, m = sqlite.execute("drop table test")
+    print(res, m)
+
+    # 关闭数据库连接
     sqlite.close_all()
