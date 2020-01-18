@@ -86,13 +86,36 @@ class xsSqlite3():
         数据库查询
         :param sql:查询sql语句
         :param param:sql语句参数，默认为None
-        :return:返回查询语句查询后的fetchall结果，返回一个list，如果查不到，则返回空列表
+        :return:返回查询语句查询后的fetchall结果，返回一个list，如果查不到，则返回空列表。
+        如果报错，返回错误提示列表，第一个元素为"query error"字符串，第二个元素为错误信息
         '''
-        if param is None:
-            self.c.execute(sql)
-        else:
-            self.c.execute(sql, param)
+        try:
+            if param is None:
+                self.c.execute(sql)
+            else:
+                self.c.execute(sql, param)
+        except Exception as e:
+            print("sqlite3数据库类运行查询的sql语句报错：", e)
+            return ["query error", e]
         return self.c.fetchall()
+
+    def query_cursor(self, sql, param=None):
+        '''
+        数据库查询，返回游标
+        :param sql:查询sql语句
+        :param param:sql语句参数，默认为None
+        :return:返回查询语句查询后的游标，可以进行迭代遍历，对于返回的结果预计量很大的时候可以使用
+        如果报错，打印错误信息，仍然可以返回空游标
+        '''
+        try:
+            if param is None:
+                self.c.execute(sql)
+            else:
+                self.c.execute(sql, param)
+        except Exception as e:
+            print("sqlite3数据库类运行查询的sql语句报错（cursor)：", e)
+        # 无论是否报错都可以返回游标
+        return self.c
 
 
 if __name__ == '__main__':
@@ -123,6 +146,17 @@ if __name__ == '__main__':
     print("test表查询结果：", res)
     res = sqlite.query("select * from test where id=?", (5,))
     print("test表查询结果：", res)
+    res = sqlite.query_cursor("select * from test")
+    for cur_res in res:
+        print("test表查询结果（游标遍历）：", cur_res)
+    # 表查询的sql语句有误测试
+    res = sqlite.query("select * test")
+    print("test表查询结果：", res)
+    res = sqlite.query_cursor("select * test")
+    print("查询报错返回的游标：", res)
+    for cur_res in res:
+        print("如果看到我这一行提示，说明报错的游标还能取出内容，如果看不到说明取不出")
+        print("test表查询结果（游标遍历）：", cur_res)
     # 表更新测试
     res, m = sqlite.execute("update test set age = ? where id = ?", (55, 1))
     print(res, m)
