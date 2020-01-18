@@ -87,8 +87,8 @@ if __name__ == '__main__':
     log_level = logging.DEBUG
     # log_level = logging.INFO
     logging.basicConfig(level=log_level,
-                        # format='[%(asctime)s] %(pathname)s[line:%(lineno)d] %(levelname)s: %(message)s',
-                        format='[%(asctime)s] %(filename)s[line:%(lineno)d] %(levelname)s: %(message)s',
+                        # format='[%(asctime)s] - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s',
+                        format='[%(asctime)s] - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S',
                         filename=log_filename,
                         filemode='w')
