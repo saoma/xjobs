@@ -325,3 +325,6 @@ dmypy.json
 .pyre/
 
 !/.gitignore
+
+# xjobs_log
+xjobs_log/
