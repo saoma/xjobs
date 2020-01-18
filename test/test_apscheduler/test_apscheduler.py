@@ -55,6 +55,12 @@ if __name__ == '__main__':
     scheduler.add_job(job1, 'cron', jitter=1, start_date='2020-01-15', end_date='2020-12-17', **cron_expression)
     try:
         scheduler.start()
+
+        # 测试获取jobs状态
+        jobs = scheduler.get_jobs()
+        for job in jobs:
+            print("当前job信息：", "job.id：%s" % job.id, "job.name：%s" % job.name)
+
         # BackgroundScheduler这个调度器，开始后不会阻塞，可以继续执行后续的代码。如果后续没有其他代码了，可以使用死循环等待下一步操作
         while True:
             time.sleep(0.5)

@@ -67,14 +67,23 @@ def load_task(flag):
     pass
 
 def my_exit():
-    pass
+    '''
+    退出中控台的代码
+    '''
+    try:
+        scheduler.shutdown(wait=False)
+    except Exception as e:
+        print("退出中控台结束程序报错：", e)
+        logging.error("退出中控台结束程序报错：" + str(e))
+    # 退出程序
+    exit()
 
 if __name__ == '__main__':
     # 中控台启动后的运行代码
 
     # 将当前运行的cmd程序标题重命名
     os.system("title xjobs定时调度程序")
-    print("现在的时间是%s" % get_format_time())
+    print("现在的时间是：%s" % get_format_time())
     print("xjobs定时调度程序已启动，正在初始化...")
 
     # 日志设置
@@ -93,7 +102,7 @@ if __name__ == '__main__':
                         filename=log_filename,
                         filemode='w')
     logging.getLogger('apscheduler').setLevel(log_level)
-    logging.info("现在的时间是%s" % get_format_time())
+    logging.info("现在的时间是：%s" % get_format_time())
     logging.info("xjobs定时调度程序已启动，正在初始化...")
 
     # scheduler配置设置
