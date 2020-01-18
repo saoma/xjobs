@@ -67,6 +67,7 @@ class xsSqlite3():
             count = self.c.rowcount
             self.conn.commit()
         except Exception as e:
+            self.conn.rollback()
             print("sqlite3数据库类执行sql语句报错：", e)
             return False, e
         if count > 0:
