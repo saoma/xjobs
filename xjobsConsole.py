@@ -84,14 +84,15 @@ if __name__ == '__main__':
     if not(os.path.exists(log_foldername)):
         os.mkdir(log_foldername)
     log_filename = log_foldername + '\\log_' + log_time + '.log'
-    logging.basicConfig(level=logging.DEBUG,
-                        # level=logging.INFO,
+    log_level = logging.DEBUG
+    # log_level = logging.INFO
+    logging.basicConfig(level=log_level,
                         # format='[%(asctime)s] %(pathname)s[line:%(lineno)d] %(levelname)s: %(message)s',
                         format='[%(asctime)s] %(filename)s[line:%(lineno)d] %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S',
                         filename=log_filename,
                         filemode='w')
-    logging.getLogger('apscheduler').setLevel(logging.DEBUG)
+    logging.getLogger('apscheduler').setLevel(log_level)
     logging.info("现在的时间是%s" % get_format_time())
     logging.info("xjobs定时调度程序已启动，正在初始化...")
 
