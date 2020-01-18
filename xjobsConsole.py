@@ -55,7 +55,29 @@ def my_help():
     print("")
 
 def my_exportTask():
-    pass
+    '''
+    导出目前的任务列表
+    '''
+    # 获取到所有调度器的job信息
+    jobs = scheduler.get_jobs()
+    if jobs:
+        now_time = get_format_time()
+        export_time = now_time.replace("-", "").replace(":", "").replace(" ", "")
+        export_foldername = "xjobs_exportTask"
+        if not (os.path.exists(export_foldername)):
+            os.mkdir(export_foldername)
+        export_filename = export_foldername + '\\exportTask_' + export_time + '.txt'
+        # 写入导出的文件中
+        with open(export_filename, 'w') as f:
+            print("%s 当前时间定时任务情况如下:" % now_time)
+            f.write("%s 当前时间定时任务情况如下:" % now_time)
+            for job in jobs:
+                f.write("\n")
+                print("job_id=%s" % job.id, "job_name=%s" % job.name, job)
+                f.write("job_id=%s" % job.id + " " + "job_name=%s" % job.name + " " + job)
+        print("执行成功，具体数据请查看文件[%s]" % export_filename)
+    else:
+        print("目前调度程序中暂时没有job")
 
 def my_pausejob(s_cmd):
     pass

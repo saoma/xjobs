@@ -328,3 +328,5 @@ dmypy.json
 
 # xjobs_log
 xjobs_log/
+# xjobs_exportTask
+xjobs_exportTask/
