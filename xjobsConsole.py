@@ -2,7 +2,7 @@
 # Author：雪山凌狐
 # website：http://www.xueshanlinghu.com
 # version： 1.0
-# update_date：2020-01-17
+# update_date：2020-01-19
 
 # xjobs中控台程序（主程序） 双击打开即启动xjobs
 
@@ -14,6 +14,7 @@ import time
 import subprocess
 import traceback
 import os
+import xueshan_utils as xs_utils
 
 
 def get_format_time(format='%Y-%m-%d %H:%M:%S'):
@@ -146,8 +147,106 @@ def my_getjobs(s_cmd):
             logging.info("未找到对应的job[job_id = %s]" % per_job_id)
     print("获取具体的job(s)信息完成！")
 
+def sqlite3_query(sql, param=None):
+    '''
+    调用现有的sqlite3封装库进行查询
+    :param sql: sql查询语句
+    :param param: 查询传入的参数，默认为空
+    :return: 查询后返回的fetchall结果，一个list
+    '''
+    sqlite = xs_utils.xsSqlite3(database_path)
+    res = sqlite.query(sql, param)
+    sqlite.close_all()
+    return res
+
 def load_task(flag):
-    pass
+    '''
+    加载任务，全部加载或者更新加载
+    :param flag: 当flag为1的时候为reloadTask重新加载所有的任务，当flag为0的时候为updateTask只重新加载15分钟前更新的任务
+    '''
+    jobs = scheduler.get_jobs()
+    joblist = []
+    for job in jobs:
+        joblist.append(job.id)
+
+    # 从数据库中获取所有jobs配置列表
+    if flag == 1 :
+        sql = '''select a.job_id, a.job_name, a.command_lang, a.command, a.input_param, a.cron_exp,
+                    a.start_date, a.end_date, a.jitter, coalesce(a.is_pause, 0) is_pause, a.success_exit, a.update_time
+                from xjobs_task a'''
+    else :
+        sql = '''select a.job_id, a.job_name, a.command_lang, a.command, a.input_param, a.cron_exp,
+                    a.start_date, a.end_date, a.jitter, coalesce(a.is_pause, 0) is_pause, a.success_exit, a.update_time
+                from xjobs_task a
+                where a.update_time >= datetime('now', 'localtime', '-15 minute')'''
+    res = sqlite3_query(sql)
+    # 每个查到的结果遍历
+    if res:
+        for row in res:
+            # 组装返回结果字典
+            row_dict = {}
+            row_dict["job_id"] = str(row[0])
+            row_dict["job_name"] = row[1]
+            row_dict["command_lang"] = row[2]
+            row_dict["command"] = row[3]
+            row_dict["input_param"] = row[4]
+            row_dict["cron_exp"] = row[5]
+            row_dict["start_date"] = row[6]
+            row_dict["end_date"] = row[7]
+            row_dict["jitter"] = row[8]
+            row_dict["is_pause"] = row[9]
+            row_dict["success_exit"] = row[10]
+            row_dict["update_time"] = row[11]
+            print(row_dict)
+            cron_expression = xs_utils.to_cron(row_dict.get('cron_exp'))
+            if row_dict["command_lang"] == 'cmd':
+                executor = 'default'
+            else:
+                executor = 'processpool'
+            # 如果一开始读取时该任务被定义为暂停任务且还未加入调度器，则直接跳过，不创建
+            if row_dict["job_id"] not in joblist and row_dict["is_pause"] == 1:
+                pass
+            # 表中已暂停启用的任务，如果还在调度器中，则删除该任务
+            elif row_dict["job_id"] in joblist and row_dict["is_pause"] == 1:
+                print("存储器中该job_id已停用，调度器中删除该job[job_id = %s]" % row_dict["job_id"])
+                scheduler.remove_job(row_dict["job_id"])
+            # 否则创建任务
+            else:
+                scheduler.add_job(func=job_run,
+                    args=(row_dict['job_id'], row_dict['job_name'], row_dict['command_lang'], row_dict['command'],
+                          row_dict['input_param'], row_dict["start_date"], row_dict["end_date"],
+                          row_dict["jitter"], row_dict['success_exit']),
+                    id=row_dict['job_id'],
+                    name=row_dict['job_name'],
+                    replace_existing=True,   # 若已存在该任务，则覆盖
+                    trigger='cron',
+                    executor=executor,
+                    **cron_expression)
+    else:
+        print("没有需要加载的任务！")
+        logging.info("没有需要加载的任务！")
+    if flag == 1:
+        print("重新加载所有任务执行完毕！")
+        logging.info("重新加载所有任务执行完毕！")
+    else:
+        print("更新加载所有任务执行完毕！")
+        logging.info("更新加载所有任务执行完毕！")
+
+def job_run(job_id, job_name, command_lang, command, input_param, start_date, end_date, jitter, success_exit):
+    '''
+    job调度的模板程序代码
+    :param job_id:任务id
+    :param job_name:任务名称
+    :param command_lang:命令语言类型
+    :param command:命令
+    :param input_param:命令参数
+    :param start_date:任务开始日期
+    :param end_date:任务结束日期
+    :param jitter:随机扰动秒数
+    :param success_exit:成功执行任务所会输出的文本
+    '''
+    print(job_id, job_name, command_lang, command, input_param, start_date, end_date, jitter, success_exit)
+
 
 def my_getalljobs(flag):
     '''
@@ -155,11 +254,13 @@ def my_getalljobs(flag):
     :param flag: 传入1为详细信息，传入2为简略信息，仅展示id和name
     '''
     jobs = scheduler.get_jobs()
+    scheduler.print_jobs()
     if jobs:
         print("已找到调度器中的所有jobs信息如下：")
         print('-' * 40)
         for job in jobs:
             job_info = scheduler.get_job(job.id)
+
             print('id：', job_info.id)
             print('name[任务名]：', job_info.name)
             if flag == '1':
@@ -183,12 +284,14 @@ def my_exit():
     退出中控台的代码
     '''
     try:
-        scheduler.shutdown(wait=False)
+        # 非异常情况，尝试等待调度器结束，再终止程序
+        scheduler.shutdown(wait=True)
     except Exception as e:
         print("退出中控台结束程序报错：", e)
         logging.error("退出中控台结束程序报错：" + str(e))
     # 退出程序
-    exit()
+    print("程序已退出！感谢您的使用！")
+    os._exit(0)
 
 if __name__ == '__main__':
     # 中控台启动后的运行代码
@@ -197,6 +300,9 @@ if __name__ == '__main__':
     os.system("title xjobs定时调度程序")
     print("现在的时间是：%s" % get_format_time())
     print("xjobs定时调度程序已启动，正在初始化...")
+
+    # 定义数据库
+    database_path = 'xjobs.db'
 
     # 日志设置
     log_time = get_format_time(format='%Y%m%d%H%M%S')
