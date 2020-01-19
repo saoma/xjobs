@@ -21,6 +21,12 @@ def job1():
     '''
     print("现在时间为：" + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
 
+def job2():
+    '''
+    用于测试的定时任务job2
+    '''
+    print("我是job2")
+
 if __name__ == '__main__':
     # 测试代码
     EXECUTORS = {
@@ -53,6 +59,8 @@ if __name__ == '__main__':
     # end_date表示结束日期，日期小于该日才能运行，等于不运行。可省略，也可传入None表示省略
     # **cron_expression的写法，可以以dict方式传入时间表达式，也可传入None表示省略
     scheduler.add_job(job1, 'cron', jitter=1, start_date='2020-01-15', end_date='2020-12-17', **cron_expression)
+    # job2加入
+    scheduler.add_job(job2, 'cron', id="id_job2", **cron_expression)
     try:
         scheduler.start()
 
@@ -60,6 +68,11 @@ if __name__ == '__main__':
         jobs = scheduler.get_jobs()
         for job in jobs:
             print("当前job信息：", "job.id：%s" % job.id, "job.name：%s" % job.name)
+        # 通过get_job命令获取某个特别id的job信息，成功返回Job，失败返回None
+        my_job2 = scheduler.get_job('id_job2')
+        if my_job2:
+            print(my_job2)
+            print("当前job信息：", "job.id：%s" % my_job2.id, "job.name：%s" % my_job2.name)
 
         # BackgroundScheduler这个调度器，开始后不会阻塞，可以继续执行后续的代码。如果后续没有其他代码了，可以使用死循环等待下一步操作
         while True:
