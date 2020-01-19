@@ -2,7 +2,7 @@
 # Author：雪山凌狐
 # website：http://www.xueshanlinghu.com
 # version： 1.0
-# update_date：2020-01-16
+# update_date：2020-01-19
 
 # 测试后台模式运行的定时任务运行
 from apscheduler.schedulers.background import BackgroundScheduler
