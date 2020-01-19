@@ -46,12 +46,14 @@ def my_help():
     print("【帮助文档】中控台支持如下几种命令输入方式:")
     print("1、帮助-[help]")
     print("2、导出当前任务情况-[exportTask]")
-    print("3、暂停某一具体job-[pause_job job_id]")
-    print("4、查看具体job情况-[query_job job_id]")
-    print("5、重新加载所有任务-[reloadTask]")
-    print("6、更新加载所有任务-[updateTask]")
+    print("3、暂停具体job(s)，支持多个输入，每个id之间使用英文,分隔即可-[pause_job job_id(s)]")
+    print("4、恢复具体job(s)，支持多个输入，每个id之间使用英文,分隔即可-[resume_job job_id(s)]")
+    print("5、查看具体job(s)情况，支持多个输入，每个id之间使用英文,分隔即可-[get_job job_id(s)]")
+    print("6、重新加载所有任务-[reloadTask]")
+    print("7、更新加载所有任务-[updateTask]")
+    print("8、查看所有job(s)的情况，详细情况flag传入1，简略情况flag传入0-[get_all_jobs flag]")
     print("9、退出程序-[quit]")
-    print("功能1、2、5、6、9可以直接输入数字处理，否则请直接输入方括号中的命令")
+    print("功能1、2、6、7、9可以直接输入数字处理，否则请直接输入方括号中的命令")
     print("")
 
 def my_exportTask():
@@ -59,6 +61,7 @@ def my_exportTask():
     导出目前的任务列表
     '''
     # 获取到所有调度器的job信息
+    scheduler.resume_job()
     jobs = scheduler.get_jobs()
     if jobs:
         now_time = get_format_time()
@@ -79,14 +82,101 @@ def my_exportTask():
     else:
         print("目前调度程序中暂时没有job")
 
-def my_pausejob(s_cmd):
-    pass
+def my_pausejobs(s_cmd):
+    '''
+    暂停具体的job(s)，支持多个输入，以,分隔处理
+    :param s_cmd:以pause_job 开头的命令，后面跟随具体的job_id，会暂停它们
+    '''
+    job_id = s_cmd.replace("pause_job", "").strip()
+    job_ids = job_id.split(",")
+    for per_job_id in job_ids:
+        if scheduler.get_job(per_job_id) is not None:
+            scheduler.pause_job(per_job_id)
+            print("已找到并暂停相关job[job_id = %s]" % per_job_id)
+            logging.info("已找到并暂停相关job[job_id = %s]" % per_job_id)
+        else:
+            print("未找到对应的job[job_id = %s]去暂停" % per_job_id)
+            logging.info("未找到对应的job[job_id = %s]去暂停" % per_job_id)
+    print("暂停具体的job(s)完成！")
 
-def my_getjob(s_cmd):
-    pass
+def my_resumejobs(s_cmd):
+    '''
+    恢复具体的job(s)，支持多个输入，以,分隔处理
+    :param s_cmd:以resume_job 开头的命令，后面跟随具体的job_id，会恢复它们
+    '''
+    job_id = s_cmd.replace("resume_job", "").strip()
+    job_ids = job_id.split(",")
+    for per_job_id in job_ids:
+        if scheduler.get_job(per_job_id) is not None:
+            scheduler.resume_job(per_job_id)
+            print("已找到并恢复相关job[job_id = %s]" % per_job_id)
+            logging.info("已找到并恢复相关job[job_id = %s]" % per_job_id)
+        else:
+            print("未找到对应的job[job_id = %s]去恢复" % per_job_id)
+            logging.info("未找到对应的job[job_id = %s]去恢复" % per_job_id)
+    print("恢复具体的job(s)完成！")
+
+def my_getjobs(s_cmd):
+    '''
+    获取具体的job(s)，支持多个输入，以,分隔处理
+    :param s_cmd:以get_job 开头的命令，后面跟随具体的job_id，会分别获取它们的状态
+    '''
+    job_id = s_cmd.replace("get_job", "").strip()
+    job_ids = job_id.split(",")
+    for per_job_id in job_ids:
+        if scheduler.get_job(per_job_id) is not None:
+            job = scheduler.get_job(per_job_id)
+            logging.info("已找到相关job[job_id = %s]的信息" % per_job_id)
+            print("已找到相关job[job_id = %s]的信息：" % per_job_id)
+            print('id：', job.id)
+            print('name[任务名]：', job.name)
+            print('trigger[触发器]：', job.trigger)
+            print('next_run_time[下一次运行时间]：', job.next_run_time)
+            print('coalesce[积攒的任务是否只跑一次]：', job.coalesce)
+            print('max_instances[实例最大并发数]：', job.max_instances)
+            print('misfire_grace_time[任务超时多少秒后不再重跑]：', job.misfire_grace_time)
+            print('executor[执行器名]：', job.executor)
+            print('func_ref[函数调用信息]：', job.func_ref)
+            print('kwargs[job执行传入的字典]：', job.kwargs)
+            print('args[job执行传入的参数]：', job.args)
+            print('-' * 40)
+        else:
+            print("未找到对应的job[job_id = %s]" % per_job_id)
+            print('-' * 40)
+            logging.info("未找到对应的job[job_id = %s]" % per_job_id)
+    print("获取具体的job(s)信息完成！")
 
 def load_task(flag):
     pass
+
+def my_getalljobs(flag):
+    '''
+    获取当下所有在调度器中的job信息
+    :param flag: 传入1为详细信息，传入2为简略信息，仅展示id和name
+    '''
+    jobs = scheduler.get_jobs()
+    if jobs:
+        print("已找到调度器中的所有jobs信息如下：")
+        print('-' * 40)
+        for job in jobs:
+            job_info = scheduler.get_job(job.id)
+            print('id：', job_info.id)
+            print('name[任务名]：', job_info.name)
+            if flag == '1':
+                print('trigger[触发器]：', job_info.trigger)
+                print('next_run_time[下一次运行时间]：', job_info.next_run_time)
+                print('coalesce[积攒的任务是否只跑一次]：', job_info.coalesce)
+                print('max_instances[实例最大并发数]：', job_info.max_instances)
+                print('misfire_grace_time[任务超时多少秒后不再重跑]：', job_info.misfire_grace_time)
+                print('executor[执行器名]：', job_info.executor)
+                print('func_ref[函数调用信息]：', job_info.func_ref)
+                print('kwargs[job执行传入的字典]：', job_info.kwargs)
+                print('args[job执行传入的参数]：', job_info.args)
+                print('-' * 40)
+    else:
+        print("调度器目前没有job")
+        logging.info("调度器目前没有job")
+
 
 def my_exit():
     '''
@@ -163,17 +253,26 @@ if __name__ == '__main__':
             elif s_cmd == "exportTask" or s_cmd == "2":
                 my_exportTask()
             elif s_cmd.find('pause_job ') > -1:
-                my_pausejob(s_cmd)
-            elif s_cmd.find('query_job ') > -1:
-                my_getjob(s_cmd)
-            elif s_cmd == "reloadTask" or s_cmd == "5":
+                my_pausejobs(s_cmd)
+            elif s_cmd.find('resume_job ') > -1:
+                my_resumejobs(s_cmd)
+            elif s_cmd.find('get_job ') > -1:
+                my_getjobs(s_cmd)
+            elif s_cmd == "reloadTask" or s_cmd == "6":
                 load_task(1)
-            elif s_cmd == "updateTask" or s_cmd == "6":
+            elif s_cmd == "updateTask" or s_cmd == "7":
                 load_task(0)
+            elif s_cmd.find('get_all_jobs ') > -1:
+                flag = s_cmd.replace('get_all_jobs', "").strip()
+                if flag != '1' and flag != '0':
+                    pass
+                else:
+                    my_getalljobs(flag)
             elif s_cmd == "quit" or s_cmd == "9":
                 my_exit()
             else:
                 print("无法处理该命令，请重新输入！")
         except Exception as e:
+            s = traceback.format_exc()
             print("中控台执行报错，错误信息为：\n" + s)
             logging.error("中控台执行报错，错误信息为：\n" + s)
