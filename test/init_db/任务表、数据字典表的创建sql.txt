@@ -1,22 +1,20 @@
 --创建xjobs_task表
-CREATE TABLE xjobs_task (
-    job_id       INTEGER         PRIMARY KEY ASC AUTOINCREMENT
-                                 NOT NULL,
-    job_name     TEXT,
-    command_lang TEXT,
-    command      TEXT,
-    input_param  TEXT,
-    comments     TEXT,
-    cron_exp     TEXT,
-    start_date   DATE,
-    end_date     DATE,
-    jitter       NUMERIC (10, 2),
-    is_pause     INTEGER (1)     DEFAULT (0) 
-                                 NOT NULL,
-    success_exit TEXT,
-    update_time  DATETIME,
-    job_type     TEXT,
-    job_subtype  TEXT
+CREATE TABLE "xjobs_task" (
+	"job_id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"job_name"	TEXT NOT NULL,
+	"command_lang"	TEXT NOT NULL,
+	"command"	TEXT NOT NULL,
+	"input_param"	TEXT,
+	"comments"	TEXT,
+	"cron_exp"	TEXT NOT NULL,
+	"start_date"	DATE,
+	"end_date"	DATE,
+	"jitter"	NUMERIC(10 , 2),
+	"is_pause"	INTEGER(1) NOT NULL DEFAULT (0),
+	"success_exit"	TEXT,
+	"update_time"	DATETIME NOT NULL,
+	"job_type"	TEXT,
+	"job_subtype"	TEXT
 );
 
 --创建xjobs_dictionary表
