@@ -68,7 +68,7 @@ def my_exportTask():
             os.mkdir(export_foldername)
         export_filename = export_foldername + '\\exportTask_' + export_time + '.txt'
         # 写入导出的文件中
-        with open(export_filename, 'w') as f:
+        with open(export_filename, 'w', encoding='utf-8') as f:
             print("%s 当前时间定时任务情况如下:" % now_time)
             f.write("%s 当前时间定时任务情况如下:" % now_time)
             for job in jobs:
