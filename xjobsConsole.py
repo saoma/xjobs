@@ -129,6 +129,9 @@ def my_getjobs(s_cmd):
             job = scheduler.get_job(per_job_id)
             logging.info("已找到相关job[job_id = %s]的信息" % per_job_id)
             print("已找到相关job[job_id = %s]的信息：" % per_job_id)
+            if job.next_run_time is None:
+                logging.info("【该job在调度器中已被暂停】")
+                print("【该job在调度器中已被暂停】")
             print('id：', job.id)
             print('name[任务名]：', job.name)
             print('trigger[触发器]：', job.trigger)
@@ -254,13 +257,14 @@ def my_getalljobs(flag):
     :param flag: 传入1为详细信息，传入2为简略信息，仅展示id和name
     '''
     jobs = scheduler.get_jobs()
-    scheduler.print_jobs()
     if jobs:
         print("已找到调度器中的所有jobs信息如下：")
         print('-' * 40)
         for job in jobs:
             job_info = scheduler.get_job(job.id)
-
+            if job_info.next_run_time is None:
+                logging.info("【该job在调度器中已被暂停】")
+                print("【该job在调度器中已被暂停】")
             print('id：', job_info.id)
             print('name[任务名]：', job_info.name)
             if flag == '1':
@@ -273,7 +277,7 @@ def my_getalljobs(flag):
                 print('func_ref[函数调用信息]：', job_info.func_ref)
                 print('kwargs[job执行传入的字典]：', job_info.kwargs)
                 print('args[job执行传入的参数]：', job_info.args)
-                print('-' * 40)
+            print('-' * 40)
     else:
         print("调度器目前没有job")
         logging.info("调度器目前没有job")
