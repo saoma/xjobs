@@ -258,8 +258,8 @@ def job_run(job_id, job_name, command_lang, command, input_param, success_exit):
         elif command_lang == 'cmd':
             return_code, return_str = job_cmd(job_id, job_name, command, input_param, success_exit)
         else:
-            logging.error("当前指定的任务类型comman_lang定时调度程序不支持，已跳过不执行！")
-            print("当前指定的任务类型comman_lang定时调度程序不支持，已跳过不执行！")
+            logging.error("当前指定的任务类型comman_lang[%s]定时调度程序不支持，已跳过不执行！" % command_lang)
+            print("当前指定的任务类型comman_lang[%s]定时调度程序不支持，已跳过不执行！" % command_lang)
     except Exception as e:
         s = traceback.format_exc()
         logging.error("执行定时任务失败[job_id=%s，job_name=%s]" % (job_id, job_name))
