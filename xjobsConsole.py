@@ -247,16 +247,15 @@ def job_run(job_id, job_name, command_lang, command, input_param, success_exit):
     # 记录任务开始执行
     logging.info("开始执行job：[job_id=%s，job_name=%s]" % (job_id, job_name))
     print("开始执行job：[job_id=%s，job_name=%s]" % (job_id, job_name))
-
     # 初始化返回代码以及返回信息
     return_code = -1
     return_str = ''
 
     try:
         if command_lang == 'python':
-            return_code, return_str = job_python(job_id, job_name, command, input_param, success_exit)
+            return_code, return_str = job_python(command, input_param, success_exit)
         elif command_lang == 'cmd':
-            return_code, return_str = job_cmd(job_id, job_name, command, input_param, success_exit)
+            return_code, return_str = job_cmd(command, success_exit)
         else:
             logging.error("当前指定的任务类型comman_lang[%s]定时调度程序不支持，已跳过不执行！" % command_lang)
             print("当前指定的任务类型comman_lang[%s]定时调度程序不支持，已跳过不执行！" % command_lang)
@@ -290,20 +289,95 @@ def job_run(job_id, job_name, command_lang, command, input_param, success_exit):
         success = 0
 
     if success == 1:
-        logging.info("执行job结束：[job_id=%s，job_name=%s] % (job_id, job_name)，执行成功！")
-        print("执行job结束：[job_id=%s，job_name=%s] % (job_id, job_name)，执行成功！")
+        logging.info("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行成功！")
+        print("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行成功！")
     elif success == 0:
-        logging.info("执行job结束：[job_id=%s，job_name=%s] % (job_id, job_name)，执行失败！详情请查看日志文件！")
-        print("执行job结束：[job_id=%s，job_name=%s] % (job_id, job_name)，执行成功！")
+        logging.info("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行失败！详情请查看日志文件！")
+        print("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行成功！")
 
-def job_python(job_id, job_name, command, input_param, success_exit):
-    print(job_id, job_name, command, input_param, success_exit)
+def job_python(command, input_param, success_exit):
+    '''
+    运行类型为python的程序命令，无需在命令中加上python
+    :param command: 运行的命令，一般来讲为python文件的路径
+    :param input_param: 如果python命令调用需要带参数，可以写到这里
+    :param success_exit: 成功标识，若有的话会检测在运行过程中是否有输出成功标识的
+    :return: 返回第一个元素为return_code返回编码，第二个元素为return_str返回文本
+    '''
+    if input_param is None:
+        cmd = "python %s" % command
+    else:
+        cmd = "python %s %s" % (command, input_param)
+    print("运行的命令为：" + cmd)
+    try:
+        sub = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = sub.communicate()
+        sub.stdout.close()
+        sub.stdout.close()
+        returncode = sub.returncode
+        return_code = 0
+        return_str = "执行成功"
+        # 程序执行过程中抛出异常
+        if returncode != 0:
+            return_code = -1
+            return_str = err
+        elif out is not None and out != "" and success_exit is not None and success_exit != "":
+            if out.find(success_exit) == -1:
+                # 执行过程的输出中未找到执行成功的限定标识
+                return_code = -2
+                return_str = out
+        elif (out is None or out == "") and (success_exit is not None and success_exit != ""):
+            # 未有输出限定的
+            return_code = -2
+            return_str = ""
+    finally:
+        # 判断如果sub变量存在则删除否则不操作
+        if 'sub' in dir():
+            del sub
+    return return_code, return_str
+
     return_code = 0
     return_str = "执行成功"
     return return_code, return_str
 
-def job_cmd(job_id, job_name, command, input_param, success_exit):
-    pass
+def job_cmd(command, success_exit):
+    '''
+    运行类型为cmd的程序命令，即直接在cmd命令提示符中执行的命令
+    :param command: 在cmd中运行的命令
+    :param success_exit: 成功标识，若有的话会检测在运行过程中是否有输出成功标识的
+    :return: 返回第一个元素为return_code返回编码，第二个元素为return_str返回文本
+    '''
+    print("运行的命令为：" + cmd)
+    try:
+        sub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        sub.wait()
+
+        err = []
+        for line in sub.stderr.readlines():
+            err.append(line)
+        if len(err) > 0:
+            return_code = -1
+            return_str = '\r\n'.join(err)
+        else:
+            out = []
+            all_output = sub.stdout.readlines()
+            for line in all_output:
+                out.append(line)
+            if all_output.find(success_exit) == -1:
+                # 没找到成功标识
+                return_code = -2
+                return_str = '\r\n'.join(out)
+            else:
+                # 运行成功
+                return_code = 0
+                return_str = "执行成功"
+    finally:
+        # 判断如果sub变量存在则删除否则不操作
+        if 'sub' in dir():
+            sub.stdout.close()
+            sub.stderr.close()
+            del sub
+
+    return return_code, return_str
 
 def my_getalljobs(flag):
     '''
