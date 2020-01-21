@@ -202,10 +202,7 @@ def load_task(flag):
             row_dict["update_time"] = row[11]
             print(row_dict)
             cron_expression = xs_utils.to_cron(row_dict.get('cron_exp'))
-            if row_dict["command_lang"] == 'cmd':
-                executor = 'default'
-            else:
-                executor = 'processpool'
+            executor = 'processpool'
             # 如果一开始读取时该任务被定义为暂停任务且还未加入调度器，则直接跳过，不创建
             if row_dict["job_id"] not in joblist and row_dict["is_pause"] == 1:
                 pass
@@ -217,13 +214,15 @@ def load_task(flag):
             else:
                 scheduler.add_job(func=job_run,
                     args=(row_dict['job_id'], row_dict['job_name'], row_dict['command_lang'], row_dict['command'],
-                          row_dict['input_param'], row_dict["start_date"], row_dict["end_date"],
-                          row_dict["jitter"], row_dict['success_exit']),
+                          row_dict['input_param'], row_dict['success_exit']),
                     id=row_dict['job_id'],
                     name=row_dict['job_name'],
                     replace_existing=True,   # 若已存在该任务，则覆盖
                     trigger='cron',
                     executor=executor,
+                    start_date=row_dict["start_date"],
+                    end_date=row_dict["end_date"],
+                    jitter=row_dict["jitter"],
                     **cron_expression)
     else:
         print("没有需要加载的任务！")
@@ -235,7 +234,7 @@ def load_task(flag):
         print("更新加载所有任务执行完毕！")
         logging.info("更新加载所有任务执行完毕！")
 
-def job_run(job_id, job_name, command_lang, command, input_param, start_date, end_date, jitter, success_exit):
+def job_run(job_id, job_name, command_lang, command, input_param, success_exit):
     '''
     job调度的模板程序代码
     :param job_id:任务id
@@ -243,13 +242,68 @@ def job_run(job_id, job_name, command_lang, command, input_param, start_date, en
     :param command_lang:命令语言类型
     :param command:命令
     :param input_param:命令参数
-    :param start_date:任务开始日期
-    :param end_date:任务结束日期
-    :param jitter:随机扰动秒数
     :param success_exit:成功执行任务所会输出的文本
     '''
-    print(job_id, job_name, command_lang, command, input_param, start_date, end_date, jitter, success_exit)
+    # 记录任务开始执行
+    logging.info("开始执行job：[job_id=%s，job_name=%s]" % (job_id, job_name))
+    print("开始执行job：[job_id=%s，job_name=%s]" % (job_id, job_name))
 
+    # 初始化返回代码以及返回信息
+    return_code = -1
+    return_str = ''
+
+    try:
+        if command_lang == 'python':
+            return_code, return_str = job_python(job_id, job_name, command, input_param, success_exit)
+        elif command_lang == 'cmd':
+            return_code, return_str = job_cmd(job_id, job_name, command, input_param, success_exit)
+        else:
+            logging.error("当前指定的任务类型comman_lang定时调度程序不支持，已跳过不执行！")
+            print("当前指定的任务类型comman_lang定时调度程序不支持，已跳过不执行！")
+    except Exception as e:
+        s = traceback.format_exc()
+        logging.error("执行定时任务失败[job_id=%s，job_name=%s]" % (job_id, job_name))
+        logging.error(s)
+        print("执行定时任务失败[job_id=%s，job_name=%s]" % (job_id, job_name))
+        print(s)
+
+    # 记录执行完成标志及情况
+    success = 1
+    if return_code == -1:
+        if return_str == "":
+            return_str = "提示信息为空"
+        logging.error("执行定时任务报错[job_id=%s，job_name=%s]" % (job_id, job_name))
+        logging.error(return_str)
+        print("执行定时任务报错[job_id=%s，job_name=%s]" % (job_id, job_name))
+        print(return_str)
+        success = 0
+
+    if return_code == -2:
+        if return_str == "":
+            return_str = "提示信息为空"
+        logging.error("执行定时任务未报错但找不到规定的成功标识文本[job_id=%s，job_name=%s，success_exit=%s]" \
+                       % (job_id, job_name, success_exit))
+        logging.error(return_str)
+        print("执行定时任务未报错但找不到规定的成功标识文本[job_id=%s，job_name=%s，success_exit=%s]" \
+                       % (job_id, job_name, success_exit))
+        print(return_str)
+        success = 0
+
+    if success == 1:
+        logging.info("执行job结束：[job_id=%s，job_name=%s] % (job_id, job_name)，执行成功！")
+        print("执行job结束：[job_id=%s，job_name=%s] % (job_id, job_name)，执行成功！")
+    elif success == 0:
+        logging.info("执行job结束：[job_id=%s，job_name=%s] % (job_id, job_name)，执行失败！详情请查看日志文件！")
+        print("执行job结束：[job_id=%s，job_name=%s] % (job_id, job_name)，执行成功！")
+
+def job_python(job_id, job_name, command, input_param, success_exit):
+    print(job_id, job_name, command, input_param, success_exit)
+    return_code = 0
+    return_str = "执行成功"
+    return return_code, return_str
+
+def job_cmd(job_id, job_name, command, input_param, success_exit):
+    pass
 
 def my_getalljobs(flag):
     '''
