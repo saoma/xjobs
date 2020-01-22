@@ -315,7 +315,7 @@ def job_python(command, input_param, success_exit):
         # 查看输出内容测试
         # print('out：', out)
         # print('err：', err)
-        if err is not None or err != "":
+        if err != "":
             logging.error(err)
         returncode = sub.returncode
         return_code = 0
@@ -328,7 +328,7 @@ def job_python(command, input_param, success_exit):
             if out.find(success_exit) == -1:
                 # 执行过程的输出中未找到执行成功的限定标识
                 return_code = -2
-                return_str = out
+                return_str = "输出内容为：\n" + out
         elif (out is None or out == "") and (success_exit is not None and success_exit != ""):
             # 未有输出内容但有设置成功文本
             return_code = -2
@@ -373,7 +373,7 @@ def job_cmd(command, success_exit):
             if all_output.find(success_exit) == -1:
                 # 没找到成功标识
                 return_code = -2
-                return_str = '\r\n'.join(out)
+                return_str = "输出内容为：\n" + '\r\n'.join(out)
             else:
                 # 运行成功
                 return_code = 0
@@ -474,6 +474,12 @@ if __name__ == '__main__':
         'misfire_grace_time': 60  # 60秒的任务超时容错
     }
     scheduler = BackgroundScheduler(executors=executors, job_defaults=job_defaults)
+
+    # 每次启动xjobs先加载一遍所有的任务进来
+    load_task(1)
+    # 添加定时任务，每10分钟查看有没有新配置的任务，自动更新加载
+    scheduler.add_job(func=load_task, args=(0,), trigger='cron', id="auto_update_task", name="每10分钟更新加载定时任务",
+                      minute="*/10")
 
     # 定时任务启动
     try:
