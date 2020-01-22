@@ -2,7 +2,7 @@
 # Author：雪山凌狐
 # website：http://www.xueshanlinghu.com
 # version： 1.0
-# update_date：2020-01-21
+# update_date：2020-01-22
 
 # xjobs中控台程序（主程序） 双击打开即启动xjobs
 
@@ -293,7 +293,7 @@ def job_run(job_id, job_name, command_lang, command, input_param, success_exit):
         print("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行成功！")
     elif success == 0:
         logging.info("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行失败！详情请查看日志文件！")
-        print("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行成功！")
+        print("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行失败！详情请查看日志文件！")
 
 def job_python(command, input_param, success_exit):
     '''
@@ -304,15 +304,19 @@ def job_python(command, input_param, success_exit):
     :return: 返回第一个元素为return_code返回编码，第二个元素为return_str返回文本
     '''
     if input_param is None:
-        cmd = "python %s" % command
+        cmd = 'python \"%s\"' % command
     else:
-        cmd = "python %s %s" % (command, input_param)
+        cmd = 'python \"%s\" %s' % (command, input_param)
+    logging.debug("运行的命令为：" + cmd)
     print("运行的命令为：" + cmd)
     try:
-        sub = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        sub = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         out, err = sub.communicate()
-        sub.stdout.close()
-        sub.stdout.close()
+        # 查看输出内容测试
+        # print('out：', out)
+        # print('err：', err)
+        if err is not None or err != "":
+            logging.error(err)
         returncode = sub.returncode
         return_code = 0
         return_str = "执行成功"
@@ -326,12 +330,14 @@ def job_python(command, input_param, success_exit):
                 return_code = -2
                 return_str = out
         elif (out is None or out == "") and (success_exit is not None and success_exit != ""):
-            # 未有输出限定的
+            # 未有输出内容但有设置成功文本
             return_code = -2
             return_str = ""
     finally:
         # 判断如果sub变量存在则删除否则不操作
         if 'sub' in dir():
+            sub.stdout.close()
+            sub.stdout.close()
             del sub
     return return_code, return_str
 
@@ -346,9 +352,10 @@ def job_cmd(command, success_exit):
     :param success_exit: 成功标识，若有的话会检测在运行过程中是否有输出成功标识的
     :return: 返回第一个元素为return_code返回编码，第二个元素为return_str返回文本
     '''
-    print("运行的命令为：" + cmd)
+    logging.debug("运行的命令为：" + command)
+    print("运行的命令为：" + command)
     try:
-        sub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        sub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         sub.wait()
 
         err = []
@@ -357,6 +364,7 @@ def job_cmd(command, success_exit):
         if len(err) > 0:
             return_code = -1
             return_str = '\r\n'.join(err)
+            logging.error(return_str)
         else:
             out = []
             all_output = sub.stdout.readlines()
