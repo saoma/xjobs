@@ -62,7 +62,6 @@ def my_exportTask():
     导出目前的任务列表
     '''
     # 获取到所有调度器的job信息
-    scheduler.resume_job()
     jobs = scheduler.get_jobs()
     if jobs:
         now_time = get_format_time()
@@ -78,7 +77,7 @@ def my_exportTask():
             for job in jobs:
                 f.write("\n")
                 print("job_id=%s" % job.id, "job_name=%s" % job.name, job)
-                f.write("job_id=%s" % job.id + " " + "job_name=%s" % job.name + " " + job)
+                f.write("[job_id=%s]" % job.id + " - " + "[job_name=%s]" % job.name + " - [" + str(job) + "]")
         print("执行成功，具体数据请查看文件[%s]" % export_filename)
     else:
         print("目前调度程序中暂时没有job")
@@ -458,8 +457,8 @@ if __name__ == '__main__':
                         format='[%(asctime)s] - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S',
                         filename=log_filename,
-                        filemode='w')
-    logging.getLogger('apscheduler').setLevel(log_level)
+                        filemode='a')
+    logging.getLogger(__name__).setLevel(log_level)
     logging.info("现在的时间是：%s" % get_format_time())
     logging.info("xjobs定时调度程序已启动，正在初始化...")
 
