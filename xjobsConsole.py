@@ -172,11 +172,11 @@ def load_task(flag):
         joblist.append(job.id)
 
     # 从数据库中获取所有jobs配置列表
-    if flag == 1 :
+    if flag == 1:
         sql = '''select a.job_id, a.job_name, a.command_lang, a.command, a.input_param, a.cron_exp,
                     a.start_date, a.end_date, a.jitter, coalesce(a.is_pause, 0) is_pause, a.success_exit, a.update_time
                 from xjobs_task a'''
-    else :
+    else:
         sql = '''select a.job_id, a.job_name, a.command_lang, a.command, a.input_param, a.cron_exp,
                     a.start_date, a.end_date, a.jitter, coalesce(a.is_pause, 0) is_pause, a.success_exit, a.update_time
                 from xjobs_task a
