@@ -2,7 +2,7 @@
 # Author：雪山凌狐
 # website：http://www.xueshanlinghu.com
 # version： 1.0
-# update_date：2020-01-22
+# update_date：2020-01-23
 
 # xjobs中控台程序（主程序） 双击打开即启动xjobs
 
@@ -233,6 +233,26 @@ def load_task(flag):
         print("更新加载所有任务执行完毕！")
         logging.info("更新加载所有任务执行完毕！")
 
+def get_latest_log_filename(log_foldername):
+    '''
+    获取修改时间最晚的一份log的文件名并返回
+    :param log_foldername: log日志存放的文件夹名
+    :return: log文件名字符串，包含后缀名
+    '''
+    project_path = os.path.dirname(os.path.abspath(__file__))
+    folder_path = project_path + "\\" + log_foldername
+    all_filenames = os.listdir(folder_path)
+    final_filename = ''
+    final_st_mtime = float(0)
+    for per_filename in all_filenames:
+        whole_file_path = folder_path + "\\" + per_filename
+        statinfo = os.stat(whole_file_path)
+        # 取修改时间，这是一个浮点数
+        if statinfo.st_mtime >= final_st_mtime:
+            final_st_mtime = statinfo.st_mtime
+            final_filename = per_filename
+    return final_filename
+
 def job_run(job_id, job_name, command_lang, command, input_param, success_exit):
     '''
     job调度的模板程序代码
@@ -243,6 +263,19 @@ def job_run(job_id, job_name, command_lang, command, input_param, success_exit):
     :param input_param:命令参数
     :param success_exit:成功执行任务所会输出的文本
     '''
+    # 因为日志记录在调用新进程时会不进行记录，这里需要重新进行配置
+    log_foldername = "xjobs_log"
+    log_filename = log_foldername + "\\" + get_latest_log_filename(log_foldername)
+    log_level = logging.DEBUG
+    # log_level = logging.INFO
+    logging.basicConfig(level=log_level,
+                        # format='[%(asctime)s] - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s',
+                        format='[%(asctime)s] - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S',
+                        filename=log_filename,
+                        filemode='a')
+    logging.getLogger(__name__).setLevel(log_level)
+
     # 记录任务开始执行
     logging.info("开始执行job：[job_id=%s，job_name=%s]" % (job_id, job_name))
     print("开始执行job：[job_id=%s，job_name=%s]" % (job_id, job_name))
