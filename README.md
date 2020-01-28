@@ -17,6 +17,12 @@ x取雪的第一个字母。
 
 
 
+如有其它学习需要，欢迎来我的博客找我：
+
+[雪山凌狐教程http://www.xueshanlinghu.com](http://www.xueshanlinghu.com)
+
+
+
 #### 必要环境安装
 
 1. Python 3已安装到电脑上，我目前开发环境的python示例版本为3.8.1
