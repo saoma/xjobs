@@ -289,8 +289,8 @@ def job_run(job_id, job_name, command_lang, command, input_param, success_exit):
     # 因为日志记录在调用新进程时会不进行记录，这里需要重新进行配置
     log_foldername = "xjobs_log"
     log_filename = log_foldername + "\\" + get_latest_log_filename(log_foldername)
-    log_level = logging.DEBUG
-    # log_level = logging.INFO
+    # log_level = logging.DEBUG
+    log_level = logging.INFO
     logging.basicConfig(level=log_level,
                         # format='[%(asctime)s] - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s',
                         format='[%(asctime)s] - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
@@ -543,8 +543,8 @@ if __name__ == '__main__':
     if not(os.path.exists(log_foldername)):
         os.mkdir(log_foldername)
     log_filename = log_foldername + '\\log_' + log_time + '.log'
-    log_level = logging.DEBUG
-    # log_level = logging.INFO
+    # log_level = logging.DEBUG
+    log_level = logging.INFO
     logging.basicConfig(level=log_level,
                         # format='[%(asctime)s] - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s',
                         format='[%(asctime)s] - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
