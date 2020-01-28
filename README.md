@@ -25,7 +25,7 @@ x取雪的第一个字母。
 
 #### 使用方法
 
-1. 将发行版download到本地并解压到某个单独的文件夹。
+1. 将最新的发行版 [https://gitee.com/xueshanlinghu/xjobs/releases](https://gitee.com/xueshanlinghu/xjobs/releases) download到本地并解压到某个单独的文件夹。
 
 2. 安装DB Browser或者SQLite Studio等数据库软件，打开xjobs.db数据库文件进行编辑。（当然，我已配置了一个测试任务，你也可以先跳过这一步，直接到下一步也可以的）
 
