@@ -40,6 +40,29 @@ def get_format_time(format='%Y-%m-%d %H:%M:%S'):
     '''
     return time.strftime(format, time.localtime())
 
+def xjobs_sendmail(content_text):
+    '''
+    xjobs程序自带的发送邮件功能模块
+    :param content_text: 要发送的文本内容
+    :return: 返回True表示发送成功，返回False表示发送失败
+    '''
+    # 这四个信息，发件人、收件人、用户名、密码如果你有跟雪山共同类中setting不同的配置可以单独配置，这里相同，就不配置了
+    # sender = ""
+    # receiver = ""
+    # username = ""
+    # password = ""
+    subject = "[xjobs运维邮件]" + get_format_time(format='%Y%m%d%H%M%S')
+    html_content = []
+    for line in content_text.split("\n"):
+        line = xs_utils.text_html(line)
+        html_content.append(line)
+    content_type = 'html'
+    res = xs_utils.sendmail(subject=subject, content_text=''.join(html_content), content_type=content_type)
+    if res:
+        return True
+    else:
+        return False
+
 def my_help():
     '''
     显示中控台帮助信息
@@ -289,43 +312,52 @@ def job_run(job_id, job_name, command_lang, command, input_param, success_exit):
         elif command_lang == 'cmd':
             return_code, return_str = job_cmd(command, success_exit)
         else:
-            logging.error("当前指定的任务类型comman_lang[%s]定时调度程序不支持，已跳过不执行！" % command_lang)
-            print("当前指定的任务类型comman_lang[%s]定时调度程序不支持，已跳过不执行！" % command_lang)
+            message = "当前指定的任务类型comman_lang[%s]定时调度程序不支持，已跳过不执行！" % command_lang
+            logging.error(message)
+            print(message)
+            xjobs_sendmail(message)
     except Exception as e:
         s = traceback.format_exc()
-        logging.error("执行定时任务失败[job_id=%s，job_name=%s]" % (job_id, job_name))
+        message = "执行定时任务失败[job_id=%s，job_name=%s]" % (job_id, job_name)
+        logging.error(message)
         logging.error(s)
-        print("执行定时任务失败[job_id=%s，job_name=%s]" % (job_id, job_name))
+        print(message)
         print(s)
+        xjobs_sendmail(message + "\n" + s)
 
     # 记录执行完成标志及情况
     success = 1
     if return_code == -1:
         if return_str == "":
             return_str = "提示信息为空"
-        logging.error("执行定时任务报错[job_id=%s，job_name=%s]" % (job_id, job_name))
+        message = "执行定时任务报错[job_id=%s，job_name=%s]" % (job_id, job_name)
+        logging.error(message)
         logging.error(return_str)
-        print("执行定时任务报错[job_id=%s，job_name=%s]" % (job_id, job_name))
+        print(message)
         print(return_str)
+        xjobs_sendmail(message + "\n" + return_str)
         success = 0
 
     if return_code == -2:
         if return_str == "":
             return_str = "提示信息为空"
-        logging.error("执行定时任务未报错但找不到规定的成功标识文本[job_id=%s，job_name=%s，success_exit=%s]" \
-                       % (job_id, job_name, success_exit))
+        message = "执行定时任务未报错但找不到规定的成功标识文本[job_id=%s，job_name=%s，success_exit=%s]" \
+                       % (job_id, job_name, success_exit)
+        logging.error(message)
         logging.error(return_str)
-        print("执行定时任务未报错但找不到规定的成功标识文本[job_id=%s，job_name=%s，success_exit=%s]" \
-                       % (job_id, job_name, success_exit))
+        print(message)
         print(return_str)
+        xjobs_sendmail(message + "\n" + return_str)
         success = 0
 
     if success == 1:
-        logging.info("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行成功！")
-        print("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行成功！")
+        message = "执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行成功！"
+        logging.info(message)
+        print(message)
     elif success == 0:
-        logging.info("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行失败！详情请查看日志文件！")
-        print("执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行失败！详情请查看日志文件！")
+        message = "执行job结束：[job_id=%s，job_name=%s]" % (job_id, job_name) + "，执行失败！详情请查看日志文件！"
+        logging.info(message)
+        print(message)
 
 def job_python(command, input_param, success_exit):
     '''
@@ -490,6 +522,7 @@ def my_listener(event):
             str = "任务执行达到最大实例数" + str
         print(str)
         logging.error(str)
+        xjobs_sendmail(str)
 
 
 if __name__ == '__main__':
