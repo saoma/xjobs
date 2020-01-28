@@ -450,7 +450,6 @@ def my_getalljobs(flag):
         print("调度器目前没有job")
         logging.info("调度器目前没有job")
 
-
 def my_exit():
     '''
     退出中控台的代码
@@ -464,6 +463,30 @@ def my_exit():
     # 退出程序
     print("程序已退出！感谢您的使用！")
     os._exit(0)
+
+def my_listener(event):
+    if event.code == EVENT_JOB_EXECUTED:
+        # job被成功的执行了 A job was executed successfully
+        pass
+    elif event.code in [EVENT_JOB_ERROR, EVENT_JOB_MISSED, EVENT_JOB_MAX_INSTANCES]:
+        s = event.traceback
+        job = scheduler.get_job(event.job_id)
+        str = ""
+        if job != None:
+            str = "[job_name=%s] [trigger=%s] [next_run_time=%s]" % (job.name, job.trigger, job.next_run_time)
+        if event.code == EVENT_JOB_ERROR:
+            # A job raised an exception during execution
+            str = "执行任务报错！" + str
+        elif event.code == EVENT_JOB_MISSED:
+            # A job’s execution was missed
+            str = "任务执行MISSED！" + str
+        elif event.code == EVENT_JOB_MAX_INSTANCES:
+            # A job being submitted to its executor was not accepted by the executor because the job has already reached
+            # its maximum concurrently executing instances
+            str = "任务执行达到最大实例数" + str
+        print(str)
+        logging.error(str)
+
 
 if __name__ == '__main__':
     # 中控台启动后的运行代码
@@ -512,6 +535,8 @@ if __name__ == '__main__':
     # 添加定时任务，每10分钟查看有没有新配置的任务，自动更新加载
     scheduler.add_job(func=load_task, args=(0,), trigger='cron', id="auto_update_task", name="每10分钟更新加载定时任务",
                       minute="*/10")
+    # 添加监听事件
+    scheduler.add_listener(my_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR | EVENT_JOB_MISSED | EVENT_JOB_MAX_INSTANCES)
 
     # 定时任务启动
     try:
