@@ -465,6 +465,10 @@ def my_exit():
     os._exit(0)
 
 def my_listener(event):
+    '''
+    监听器部分代码，用来做中控台的事件监听
+    :param event: 会自动传入的事件，可以通过事件判断后续如何进行处理
+    '''
     if event.code == EVENT_JOB_EXECUTED:
         # job被成功的执行了 A job was executed successfully
         pass
