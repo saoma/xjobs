@@ -2,7 +2,7 @@
 # Author：雪山凌狐
 # website：http://www.xueshanlinghu.com
 # version： 1.0
-# update_date：2020-01-23
+# update_date：2020-01-28
 
 # xjobs中控台程序（主程序） 双击打开即启动xjobs
 
