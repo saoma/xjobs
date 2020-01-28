@@ -330,3 +330,5 @@ dmypy.json
 xjobs_log/
 # xjobs_exportTask
 xjobs_exportTask/
+# xueshan_utils
+xueshan_utils/xs_sendmail_setting.py
