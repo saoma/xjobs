@@ -36,6 +36,10 @@ if (version_info.major < 3) or (version_info.major == 3 and version_info.minor <
 USE_MAIL = False
 ####################
 
+# 如果启用了邮件监控，才导入发邮件的命令
+if USE_MAIL:
+    from xueshan_utils.xs_sendmail import sendmail, text_html
+
 def get_format_time(format='%Y-%m-%d %H:%M:%S'):
     '''
     获取现行时间格式化后的时间文本
@@ -74,10 +78,10 @@ def xjobs_sendmail(content_text):
         subject = "[xjobs运维邮件]" + get_format_time(format='%Y%m%d%H%M%S')
         html_content = []
         for line in content_text.split("\n"):
-            line = xs_utils.text_html(line)
+            line = text_html(line)
             html_content.append(line)
         content_type = 'html'
-        res = xs_utils.sendmail(subject=subject, content_text=''.join(html_content), content_type=content_type)
+        res = sendmail(subject=subject, content_text=''.join(html_content), content_type=content_type)
         if res:
             return True
         else:
