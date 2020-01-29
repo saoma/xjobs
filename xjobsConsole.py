@@ -1,21 +1,40 @@
 # coding: utf-8
 # Author：雪山凌狐
 # website：http://www.xueshanlinghu.com
-# version： 1.0
-# update_date：2020-01-28
+# version： 1.1
+# update_date：2020-01-29
 
 # xjobs中控台程序（主程序） 双击打开即启动xjobs
+# 运维支持的python版本为：3.6以上（在至少3.6.6版本测试通过）
 
-from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR,EVENT_JOB_MISSED,EVENT_JOB_MAX_INSTANCES
+try:
+    from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
+    from apscheduler.schedulers.background import BackgroundScheduler
+    from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR,EVENT_JOB_MISSED,EVENT_JOB_MAX_INSTANCES
+except:
+    print("导入apscheduler模块出错，请务必先安装该三方包！\n使用命令：\npip install apscheduler")
+    input("")
+    os._exit(0)
 import logging
 import time
 import subprocess
 import traceback
 import os
 import xueshan_utils as xs_utils
+from sys import version_info
+# 版本检查，必须在3.6版本以上
+if (version_info.major < 3) or (version_info.major == 3 and version_info.minor < 6):
+    print("xjobs所支持的最低python版本为3.6，请您按任意键退出！")
+    input("")
+    os._exit(0)
 
+####################
+# 可自定义配置项
+
+# 程序是否使用邮件发送功能
+# 默认不启用False，当你配置好xueshan_utils/xs_sendmail_setting.py配置文件后，可以自行改为True启用
+USE_MAIL = False
+####################
 
 def get_format_time(format='%Y-%m-%d %H:%M:%S'):
     '''
@@ -51,17 +70,19 @@ def xjobs_sendmail(content_text):
     # receiver = ""
     # username = ""
     # password = ""
-    subject = "[xjobs运维邮件]" + get_format_time(format='%Y%m%d%H%M%S')
-    html_content = []
-    for line in content_text.split("\n"):
-        line = xs_utils.text_html(line)
-        html_content.append(line)
-    content_type = 'html'
-    res = xs_utils.sendmail(subject=subject, content_text=''.join(html_content), content_type=content_type)
-    if res:
-        return True
-    else:
-        return False
+    if USE_MAIL: # 如果需要使用自带的邮件发送功能，请配置好配置后，在本程序代码开头将USE_MAIL的值设置为True
+        subject = "[xjobs运维邮件]" + get_format_time(format='%Y%m%d%H%M%S')
+        html_content = []
+        for line in content_text.split("\n"):
+            line = xs_utils.text_html(line)
+            html_content.append(line)
+        content_type = 'html'
+        res = xs_utils.sendmail(subject=subject, content_text=''.join(html_content), content_type=content_type)
+        if res:
+            return True
+        else:
+            return False
+    return False
 
 def my_help():
     '''
@@ -374,7 +395,12 @@ def job_python(command, input_param, success_exit):
     logging.debug("运行的命令为：" + cmd)
     print("运行的命令为：" + cmd)
     try:
-        sub = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            # python3.7版本才有text属性，跟以前版本中的universal_newlines基本是等价的
+            sub = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except:
+            sub = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   universal_newlines=True)
         out, err = sub.communicate()
         # 查看输出内容测试
         # print('out：', out)
@@ -419,7 +445,12 @@ def job_cmd(command, success_exit):
     logging.debug("运行的命令为：" + command)
     print("运行的命令为：" + command)
     try:
-        sub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            # python3.7版本才有text属性，跟以前版本中的universal_newlines基本是等价的
+            sub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except:
+            sub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   universal_newlines=True)
         sub.wait()
 
         err = []
