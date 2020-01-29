@@ -41,7 +41,7 @@ x取雪的第一个字母。
 
 ##### 首次使用：
 
-1. 将最新的发行版 [https://gitee.com/xueshanlinghu/xjobs/releases](https://gitee.com/xueshanlinghu/xjobs/releases) download到本地并解压到某个单独的文件夹。
+1. 将最新的发行版 [https://gitee.com/xueshanlinghu/xjobs/releases](https://gitee.com/xueshanlinghu/xjobs/releases) download到本地并解压。
 
 2. 首次使用，请打开cmd命令提示符，进入xjobs所在的文件夹，运行如下命令启动它测试有没有问题：
 
