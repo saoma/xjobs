@@ -1,8 +1,8 @@
 # coding: utf-8
 # Author：雪山凌狐
 # website：http://www.xueshanlinghu.com
-# version： 1.1
-# update_date：2020-01-29
+# version： 1.2
+# update_date：2020-01-30
 
 # xjobs中控台程序（主程序） 双击打开即启动xjobs
 # 运维支持的python版本为：3.6以上（在至少3.6.6版本测试通过）
@@ -540,7 +540,8 @@ def my_listener(event):
         # job被成功的执行了 A job was executed successfully
         pass
     elif event.code in [EVENT_JOB_ERROR, EVENT_JOB_MISSED, EVENT_JOB_MAX_INSTANCES]:
-        s = event.traceback
+        # s = event.traceback   # 无此命令，禁用该写法
+        s = traceback.format_exc()
         job = scheduler.get_job(event.job_id)
         str = ""
         if job != None:
