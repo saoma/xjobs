@@ -1,8 +1,8 @@
 # coding: utf-8
 # Author：雪山凌狐
 # website：http://www.xueshanlinghu.com
-# version： 1.2
-# update_date：2020-01-30
+# version： 1.3
+# update_date：2020-02-10
 
 # xjobs中控台程序（主程序） 双击打开即启动xjobs
 # 运维支持的python版本为：3.6以上（在至少3.6.6版本测试通过）
@@ -249,7 +249,7 @@ def load_task(flag):
             row_dict["update_time"] = row[11]
             print(row_dict)
             cron_expression = xs_utils.to_cron(row_dict.get('cron_exp'))
-            executor = 'processpool'
+            # executor = 'processpool'
             # 如果一开始读取时该任务被定义为暂停任务且还未加入调度器，则直接跳过，不创建
             if row_dict["job_id"] not in joblist and row_dict["is_pause"] == 1:
                 pass
@@ -266,7 +266,7 @@ def load_task(flag):
                     name=row_dict['job_name'],
                     replace_existing=True,   # 若已存在该任务，则覆盖
                     trigger='cron',
-                    executor=executor,
+                    # executor=executor,
                     start_date=row_dict["start_date"],
                     end_date=row_dict["end_date"],
                     jitter=row_dict["jitter"],
