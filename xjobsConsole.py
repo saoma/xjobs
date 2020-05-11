@@ -1,8 +1,8 @@
 # coding: utf-8
 # Author：雪山凌狐
 # website：http://www.xueshanlinghu.com
-# version： 1.3
-# update_date：2020-02-10
+# version： 1.4
+# update_date：2020-05-11
 
 # xjobs中控台程序（主程序） 双击打开即启动xjobs
 # 运维支持的python版本为：3.6以上（在至少3.6.6版本测试通过）
@@ -469,7 +469,7 @@ def job_cmd(command, success_exit):
             all_output = sub.stdout.readlines()
             for line in all_output:
                 out.append(line)
-            if all_output.find(success_exit) == -1:
+            if '\r\n'.join(all_output).find(success_exit) == -1:
                 # 没找到成功标识
                 return_code = -2
                 return_str = "输出内容为：\n" + '\r\n'.join(out)
